@@ -1,34 +1,80 @@
 import { Link } from "react-router";
 import { useShoppingListsService } from "../services/ShoppingListsService";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 export interface ShoppingList {
     id: number;
     name: string;
 }
 
-export function ShoppingListsPage() {
-    const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
+const SET_LOADING = 'SET_LOADING';
+const SET_ERROR = 'SET_ERROR';
+const RELOAD = 'RELOAD';
+const SET_SHOPPING_LISTS = 'SET_SHOPPING_LISTS';
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [reload, setReload] = useState(false);
+interface ShoppingListsPageState {
+    shoppingLists: ShoppingList[];
+    isLoading: boolean;
+    errorMessage: string;
+    reload: boolean;
+}
+
+type Action = {
+    type: typeof SET_LOADING,
+    payload: { isLoading: boolean }
+} | {
+    type: typeof SET_ERROR,
+    payload: { errorMessage: string }
+} | {
+    type: typeof RELOAD,
+    payload: {}
+} | {
+    type: typeof SET_SHOPPING_LISTS,
+    payload: { shoppingLists: ShoppingList[] }
+};
+
+const setLoading = (isLoading: boolean): Action => ({type: SET_LOADING, payload: {isLoading}});
+
+function shoppingListsPageReducer(state: ShoppingListsPageState, {type, payload}: Action): ShoppingListsPageState {
+    switch (type) {
+        case SET_LOADING: 
+            return { ...state, isLoading: payload.isLoading };
+        case SET_ERROR: 
+            return { ...state, errorMessage: payload.errorMessage };
+        case SET_SHOPPING_LISTS: 
+            return { ...state, shoppingLists: payload.shoppingLists };
+        case RELOAD: 
+            return { ...state, reload: !state.reload };
+        default:
+            return state;
+    }
+}
+
+
+export function ShoppingListsPage() {
+    const [{ shoppingLists, isLoading, errorMessage, reload }, dispatch] = useReducer(shoppingListsPageReducer, {
+        shoppingLists: [],
+        isLoading: false,
+        errorMessage: '',
+        reload: false,
+    });
+
     const { getShoppingLists } = useShoppingListsService();
-    
+
     useEffect(() => {
-        setIsLoading(true);
-        setErrorMessage('');
+        dispatch(setLoading(true));
+        dispatch({ type: SET_ERROR, payload: { errorMessage: '' }});
 
         getShoppingLists()
-            .then(results => setShoppingLists(results))
+            .then(results => dispatch({ type: SET_SHOPPING_LISTS, payload: {shoppingLists: results }}))
             .catch(() => {
-                setErrorMessage('Failed to load data. Try again later.');
+                dispatch({ type: SET_ERROR, payload: { errorMessage: 'Failed to load data. Try again later.' }});
             })
-            .finally(() => setIsLoading(false));
+            .finally(() => dispatch(setLoading(false)));
     }, [reload]);
 
     const handleReload = () => {
-        setReload(!reload)
+        dispatch({ type: RELOAD, payload: {}})
     }
 
     return <div className="space-y-2">
