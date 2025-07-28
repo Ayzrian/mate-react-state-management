@@ -18,7 +18,7 @@ export type ShoppingLilstsSlice = {
 
 export const createShoppingListsSlice: StateCreator<
     AppState,
-    [],
+    [["zustand/immer", never]],
     [],
     ShoppingLilstsSlice
 > = (set, get) => ({
@@ -28,21 +28,17 @@ export const createShoppingListsSlice: StateCreator<
         errorMessage: '',
         reload: false,
 
-        setShoppingLists: (lists) => set((state) => ({
-            ...state,
-            shoppinListsSlice: { ...state.shoppinListsSlice,  shoppingLists: lists }
-        })),
-        setLoading: (isLoading) => set((state) => ({
-            ...state,
-            shoppinListsSlice: { ...state.shoppinListsSlice,  isLoading }
-        })),
-        setError: (errorMessage) => set((state) => ({
-            ...state,
-            shoppinListsSlice: { ...state.shoppinListsSlice,  errorMessage }
-        })),
-        triggerReload: () => set((state) => ({
-            ...state,
-            shoppinListsSlice: { ...state.shoppinListsSlice,  reload: state.shoppinListsSlice.reload }
-        })),
+        setShoppingLists: (lists) => set((state) => {
+            state.shoppinListsSlice.shoppingLists = lists;
+        }),
+        setLoading: (isLoading) => set((state) => {
+            state.shoppinListsSlice.isLoading = isLoading;
+        }),
+        setError: (errorMessage) => set((state) => {
+            state.shoppinListsSlice.errorMessage = errorMessage;
+        }),
+        triggerReload: () => set((state) => {
+            state.shoppinListsSlice.reload = !state.shoppinListsSlice.reload;
+        }),
     }
 })
