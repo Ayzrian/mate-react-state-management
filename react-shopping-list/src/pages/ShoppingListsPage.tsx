@@ -1,7 +1,5 @@
 import { Link } from "react-router";
-import { useShoppingListsService } from "../services/ShoppingListsService";
-import { useEffect } from "react";
-import { useAppStore } from "../stores";
+import { useGetShoppingListsQuery } from "../features/shopping-lists/shopping-lists-api-slice";
 
 export interface ShoppingList {
     id: number;
@@ -9,33 +7,10 @@ export interface ShoppingList {
 }
 
 export function ShoppingListsPage() {
-    const { 
-        shoppingLists,
-        isLoading,
-        errorMessage,
-        reload,
-        setError,
-        setLoading,
-        setShoppingLists,
-        triggerReload
-    } = useAppStore((state) => state.shoppinListsSlice);
-
-    const { getShoppingLists } = useShoppingListsService();
-
-    useEffect(() => {
-        setLoading(true);
-        setError('');
-
-        getShoppingLists()
-            .then(results => setShoppingLists(results))
-            .catch(() => {
-                setError('Failed to load data. Try again later.');
-            })
-            .finally(() => setLoading(false));
-    }, [reload]);
+    const shoppingListsResult = useGetShoppingListsQuery(undefined);
 
     const handleReload = () => {
-       triggerReload()
+       shoppingListsResult.refetch();
     }
 
     return <div className="space-y-2">
@@ -44,8 +19,8 @@ export function ShoppingListsPage() {
         </div>
 
         {
-            errorMessage && <div className="alert alert-error">
-                {errorMessage}
+            shoppingListsResult.isError && <div className="alert alert-error">
+                Failed to load data, try again later!
             
                 <div className="btn btn-outline" onClick={handleReload}>
                     Reload
@@ -54,7 +29,7 @@ export function ShoppingListsPage() {
         }
 
         {
-            isLoading && (<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            shoppingListsResult.isLoading && (<div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div className="skeleton card p-8" />
                 <div className="skeleton card p-8" />
                 <div className="skeleton card p-8" />
@@ -65,14 +40,14 @@ export function ShoppingListsPage() {
         }
 
         {
-            (!isLoading && !errorMessage) && (
+            (shoppingListsResult.isSuccess) && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                     {
-                        shoppingLists.length === 0 && <p>No shopping lists yet...</p>
+                        shoppingListsResult.data.length === 0 && <p>No shopping lists yet...</p>
                     }
         
                     {
-                        shoppingLists.map((list) => <div key={list.id} className="card bg-white shadow-sm cursor-pointer">
+                        shoppingListsResult.data.map((list) => <div key={list.id} className="card bg-white shadow-sm cursor-pointer">
                             <div className="card-body text-center font-bold">
                                 <Link to={`/shopping-lists/${list.id}`}>
                                     {list.name}

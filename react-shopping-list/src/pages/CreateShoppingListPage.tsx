@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router";
 import { ShoppingListForm, ShoppingListFormValues } from "../components/ShoppingListForm/ShoppingListForm";
-import { useShoppingListsService } from "../services/ShoppingListsService";
+import { useCreateShoppingListMutation } from "../features/shopping-lists/shopping-lists-api-slice";
 
 export function CreateShoppingListPage() {
-    const { createShoppingList } = useShoppingListsService();
+    const [createShoppingList] = useCreateShoppingListMutation();
+    
     const navigate = useNavigate();
     
     const handleSubmit = async (values: ShoppingListFormValues) => {
