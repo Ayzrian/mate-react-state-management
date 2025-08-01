@@ -2,9 +2,11 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { cva } from "class-variance-authority";
-import { useContext, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { login } from "../features/auth/auth-slice";
+import { useAppDispatch } from "../store";
 
 const loginSchema = yup.object({
   username: yup.string().required("Username is required"),
@@ -33,14 +35,16 @@ export function LoginPage() {
     resolver: yupResolver(loginSchema),
   });
 
-  const { login } = useContext(AuthContext);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const [error, setError] = useState(false);
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(false);
-      await login(data.username, data.password);
+      await dispatch(login({
+        ...data,
+      }));
       navigate('/shopping-lists');
     } catch (e) {
       console.error(e);

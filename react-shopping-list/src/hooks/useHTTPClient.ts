@@ -1,10 +1,11 @@
-import { useContext, useMemo } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useMemo } from "react";
 import { apiBaseUrl } from "../config";
+import { useAppSelector } from "../store";
+import { selectToken } from "../features/auth/auth-slice";
 
 
 export function useHTTPClient() {
-    const { token } = useContext(AuthContext);
+    const token = useAppSelector(selectToken)
 
     return useMemo(() => ({
         get: <TResponse = unknown>(path: string): Promise<TResponse> => {
